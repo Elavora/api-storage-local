@@ -1,49 +1,32 @@
 # Guia de uso
 
-Armazenamento local opcional para o framework Elavora.
-
-## Instalacao
-
-```bash
-composer require elavora/api-storage-local
-```
-
-## Quando usar
-
-- Salvar e ler arquivos por contrato comum.
-- Trocar storage local por S3 sem alterar services de dominio.
-- Centralizar configuracao de paths, buckets e chaves.
-
-## Exemplo rapido
+`LocalStorageExtension` registra uma implementacao local de `Storage`.
 
 ```php
 use Elavora\Api\Extension\StorageLocal\LocalStorageExtension;
+use Elavora\Api\Framework\Application;
+use Elavora\Api\Framework\Contracts\Storage;
 
-$application->extend(new LocalStorageExtension([
-    // Configure caminho, bucket ou credenciais conforme o driver.
-]));
+$application = Application::create()->extend(
+    new LocalStorageExtension(__DIR__ . '/storage')
+);
+$storage = $application->container()->get(Storage::class);
+
+$storage->put('documents/report.txt', 'conteudo');
+$body = $storage->get('documents/report.txt')['Body'];
+$url = $storage->temporaryUrl('documents/report.txt');
+$storage->delete('documents/report.txt');
 ```
 
-## Principais pontos de entrada
+As escritas usam um arquivo temporario no mesmo diretorio e `rename()` para que leitores observem o conteudo anterior ou o novo. Temporarios sao removidos em sucesso ou falha.
 
-- `Elavora\Api\Extension\StorageLocal\LocalStorage`
-- `Elavora\Api\Extension\StorageLocal\LocalStorageExtension`
+Componentes simbolicos e destinos simbolicos sao rejeitados nas quatro operacoes. As verificacoes portaveis possuem uma janela TOCTOU entre a validacao e a operacao; por isso, somente o processo da aplicacao deve poder modificar a arvore sob a raiz. Sistemas que exigem protecao contra um atacante concorrente devem usar primitivas especificas da plataforma, como `openat` com `O_NOFOLLOW`.
 
-## Dependencias de runtime
+## Validacao do pacote
 
-- `elavora/api-framework` `^0.3.1`
-
-## Validacao no projeto consumidor
-
-Depois de instalar o pacote, rode os testes da aplicacao consumidora. Para uma verificacao isolada do pacote, use container:
+Execute a partir da raiz do clone:
 
 ```bash
-docker run --rm -v "${PWD}:/workspace" -w "/workspace/api-storage-local" composer:2 composer validate --strict --no-check-publish
-docker run --rm -v "${PWD}:/workspace" -w "/workspace/api-storage-local" composer:2 sh -lc "find . \\( -path ./.git -o -path ./vendor \\) -prune -o -name '*.php' -print0 | xargs -0 -r -n1 php -l"
+docker run --rm -v "${PWD}:/workspace" -w /workspace composer:2 composer update --no-interaction --no-progress --prefer-dist
+docker run --rm -v "${PWD}:/workspace" -w /workspace composer:2 composer check
 ```
-
-## Observacoes
-
-- Mantenha regras de produto fora deste pacote.
-- Prefira configurar extensoes no bootstrap da aplicacao.
-- Instale apenas os modulos que a aplicacao realmente usa.

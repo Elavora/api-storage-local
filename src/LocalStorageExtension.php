@@ -13,9 +13,7 @@ final class LocalStorageExtension implements Extension
     /**
      * @param string $rootPath Diretorio raiz do storage local.
      */
-    public function __construct(private readonly string $rootPath)
-    {
-    }
+    public function __construct(private readonly string $rootPath) {}
 
     /**
      * Registra o storage local como implementacao de Storage.

@@ -95,7 +95,7 @@ final class LocalStorage implements Storage
     public function temporaryUrl(
         string $key,
         ?DateTimeImmutable $expiresAt = null,
-        array $options = []
+        array $options = [],
     ): string {
         return 'file://' . $this->pathFor($this->normalizedKey($key));
     }

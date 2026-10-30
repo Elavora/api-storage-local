@@ -30,7 +30,11 @@ Especificação completa, exemplos e validação local: [docs/USO.md](docs/USO.m
 composer require elavora/api-storage-local
 ```
 
-Requisitos: PHP 8.1 ou superior e `elavora/api-framework` `^0.3.1`.
+Requisitos: PHP 8.3 ou superior e `elavora/api-framework` `^2.0`.
+
+Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
+8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o
+[guia de migração](docs/USO.md#versão-e-compatibilidade)).
 
 ## Desenvolvimento e testes
 
@@ -67,7 +71,7 @@ estão em [Desenvolvimento e testes](docs/DESENVOLVIMENTO.md).
 ## Versões
 
 Cada PR integrado na `main` gera uma versão automaticamente, conforme as labels do PR: sem a label `release` sai uma
-beta (`0.2.1-beta.1`), com ela sai a estável (`0.2.1`). As tags novas não têm o prefixo `v`, e as notas de cada
+beta (`1.0.1-beta.1`), com ela sai a estável (`1.0.1`). As tags novas não têm o prefixo `v`, e as notas de cada
 GitHub Release são geradas em português a partir dos PRs. Veja [Versões e release](docs/AUTOMACAO.md#versões-e-release).
 
 ## Documentação

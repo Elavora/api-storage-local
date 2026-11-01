@@ -19,8 +19,8 @@ $storage = $application->container()->get(Storage::class);
 $storage->put('reports/example.txt', 'conteudo');
 ```
 
-Este pacote é aditivo. Ele não substitui `Elavora\Api\Interface\Storage` nem as
-classes de storage existentes no módulo legado `elavora/api-api`.
+O pacote não depende de nenhum outro storage: ele só implementa
+`Elavora\Api\Framework\Contracts\Storage`.
 
 Especificação completa, exemplos e validação local: [docs/USO.md](docs/USO.md).
 

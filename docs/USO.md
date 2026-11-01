@@ -121,8 +121,8 @@ Só a dependência do framework sobe de major (e o PHP mínimo sobe para 8.3). `
 `Elavora\Api\Framework\Contracts\Extension` do framework 2. No framework 0.3 esses tipos não existem nesse namespace,
 então o pacote `0.x` não funciona com o framework 2, nem a `1.0` com o 0.3: atualize os dois juntos.
 
-Este pacote é aditivo: ele não substitui `Elavora\Api\Interface\Storage` nem as classes de storage do módulo legado
-`elavora/api-api`.
+O pacote não depende de nenhum outro storage: ele só implementa `Elavora\Api\Framework\Contracts\Storage`. Quem já usa
+o contrato pode trocar a implementação por outra sem alterar o código que chama `Storage`.
 
 ## Validacao no projeto consumidor
 

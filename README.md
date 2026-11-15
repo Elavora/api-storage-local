@@ -30,7 +30,7 @@ Especificação completa, exemplos e validação local: [docs/USO.md](docs/USO.m
 composer require elavora/api-storage-local
 ```
 
-Requisitos: PHP 8.3 ou superior e `elavora/api-framework` `^2.0`.
+Requisitos: PHP 8.3 ou superior e `elavora/api-framework` `^3.0`.
 
 Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
 8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o

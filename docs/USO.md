@@ -96,7 +96,7 @@ Por isso nenhuma chave escapa do diretório raiz.
 
 ## Dependencias de runtime
 
-- PHP `>=8.3`
+- PHP `>=8.4`
 - `elavora/api-framework` `^2.0`
 
 ## Versão e compatibilidade
@@ -108,7 +108,7 @@ projeto e rode `composer update elavora/api-framework elavora/api-storage-local`
 ```json
 {
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "elavora/api-framework": "^2.0",
     "elavora/api-storage-local": "^1.0"
   }

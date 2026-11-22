@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Elavora\Api\Extension\StorageLocal\LocalStorage;
 use Elavora\Api\Extension\StorageLocal\LocalStorageExtension;
 use Elavora\Api\Framework\Application;
+use Elavora\Api\Framework\Contracts\InspectsObjects;
 use Elavora\Api\Framework\Contracts\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -352,6 +353,125 @@ final class LocalStorageTest extends TestCase
             'termina em barra' => ['a/b/'],
             'byte nulo no meio' => ["a\0b.txt"],
         ];
+    }
+
+    // exists e size (InspectsObjects)
+
+    public function testImplementsInspectsObjectsContract(): void
+    {
+        self::assertInstanceOf(InspectsObjects::class, new LocalStorage($this->rootPath));
+    }
+
+    public function testExistsAndSizeOfStoredFile(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+        $storage->put('reports/example.txt', 'content');
+
+        self::assertTrue($storage->exists('reports/example.txt'));
+        self::assertSame(7, $storage->size('reports/example.txt'));
+    }
+
+    public function testSizeIsMeasuredInBytes(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+        $storage->put('utf8.txt', 'ação');
+
+        self::assertSame(6, $storage->size('utf8.txt'));
+    }
+
+    public function testEmptyFileExistsWithSizeZero(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+        $storage->put('empty.txt', '');
+
+        self::assertTrue($storage->exists('empty.txt'));
+        self::assertSame(0, $storage->size('empty.txt'));
+    }
+
+    public function testMissingFileDoesNotExistAndHasNoSize(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+
+        self::assertFalse($storage->exists('missing.txt'));
+        self::assertNull($storage->size('missing.txt'));
+        self::assertDirectoryDoesNotExist($this->rootPath, 'consultar não cria o diretório raiz');
+    }
+
+    public function testDirectoryIsNotAFile(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+        $storage->put('dir/file.txt', 'x');
+
+        self::assertFalse($storage->exists('dir'));
+        self::assertNull($storage->size('dir'));
+    }
+
+    public function testReflectsDiskChangesMadeAfterAPreviousQuery(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+
+        self::assertFalse($storage->exists('a.txt'));
+        self::assertNull($storage->size('a.txt'));
+
+        // Simula um upload direto: o arquivo chega sem passar pelo Storage.
+        mkdir($this->rootPath, 0775, true);
+        file_put_contents($this->rootPath . DIRECTORY_SEPARATOR . 'a.txt', '12345');
+
+        self::assertTrue($storage->exists('a.txt'));
+        self::assertSame(5, $storage->size('a.txt'));
+
+        file_put_contents($this->rootPath . DIRECTORY_SEPARATOR . 'a.txt', '123');
+        self::assertSame(3, $storage->size('a.txt'));
+
+        unlink($this->rootPath . DIRECTORY_SEPARATOR . 'a.txt');
+        self::assertFalse($storage->exists('a.txt'));
+        self::assertNull($storage->size('a.txt'));
+    }
+
+    public function testExistsAndSizeNormalizeTheKey(): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+        $storage->put('reports/2026/a.txt', 'abc');
+
+        self::assertTrue($storage->exists('reports\\2026\\a.txt'));
+        self::assertSame(3, $storage->size('  reports/2026/a.txt  '));
+    }
+
+    #[DataProvider('invalidKeys')]
+    public function testExistsAndSizeRejectInvalidKeys(string $key): void
+    {
+        $storage = new LocalStorage($this->rootPath);
+
+        foreach (['exists' => static fn() => $storage->exists($key), 'size' => static fn() => $storage->size($key)] as $method => $call) {
+            try {
+                $call();
+                self::fail("{$method} deveria rejeitar a chave.");
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame('A chave de storage e invalida.', $exception->getMessage(), $method);
+            }
+        }
+    }
+
+    public function testTraversalCannotRevealFilesOutsideTheRoot(): void
+    {
+        $outside = $this->rootPath . '-outside.txt';
+        file_put_contents($outside, 'segredo');
+
+        try {
+            $storage = new LocalStorage($this->rootPath);
+            $relative = '../' . basename($this->rootPath) . '-outside.txt';
+
+            foreach (['exists' => static fn() => $storage->exists($relative), 'size' => static fn() => $storage->size($relative)] as $method => $call) {
+                try {
+                    $call();
+                    self::fail("{$method} deveria rejeitar o caminho que sai da raiz.");
+                } catch (InvalidArgumentException) {
+                    $this->addToAssertionCount(1);
+                }
+            }
+        } finally {
+            unlink($outside);
+        }
     }
 
     private function removeDirectory(string $path): void

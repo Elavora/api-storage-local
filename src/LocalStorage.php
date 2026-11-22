@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Elavora\Api\Extension\StorageLocal;
 
+use Elavora\Api\Framework\Contracts\InspectsObjects;
 use Elavora\Api\Framework\Contracts\Storage;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use RuntimeException;
 
-final class LocalStorage implements Storage
+final class LocalStorage implements Storage, InspectsObjects
 {
     /**
      * @param string $rootPath Diretorio raiz onde os arquivos serao gravados.
@@ -98,6 +99,41 @@ final class LocalStorage implements Storage
         array $options = [],
     ): string {
         return 'file://' . $this->pathFor($this->normalizedKey($key));
+    }
+
+    /**
+     * Informa se existe um arquivo na chave (um diretorio nao conta).
+     *
+     * @param string $key Chave relativa do arquivo.
+     */
+    public function exists(string $key): bool
+    {
+        $path = $this->pathFor($this->normalizedKey($key));
+        clearstatcache(true, $path);
+
+        return is_file($path);
+    }
+
+    /**
+     * Retorna o tamanho do arquivo em bytes, ou null se ele nao existe.
+     *
+     * @param string $key Chave relativa do arquivo.
+     */
+    public function size(string $key): ?int
+    {
+        $path = $this->pathFor($this->normalizedKey($key));
+        clearstatcache(true, $path);
+
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $size = filesize($path);
+        if ($size === false) {
+            throw new RuntimeException('Nao foi possivel obter o tamanho do arquivo no storage local.');
+        }
+
+        return $size;
     }
 
     private function pathFor(string $key): string

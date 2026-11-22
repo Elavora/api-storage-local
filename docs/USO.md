@@ -52,6 +52,11 @@ $storage->put('reports/example.txt', 'conteudo');
 | `get(string $key, array $options = []): array` | `['Key' => string, 'Body' => string, 'ContentLength' => int]` |
 | `delete(string $key, array $options = []): array` | `['Key' => string, 'Deleted' => bool]` |
 | `temporaryUrl(string $key, ?DateTimeImmutable $expiresAt = null, array $options = []): string` | URL `file://` |
+| `exists(string $key): bool` | `true` se o arquivo existe, `false` se não existe |
+| `size(string $key): ?int` | o tamanho do arquivo em bytes, ou `null` se não existe |
+
+`LocalStorage` também implementa `Elavora\Api\Framework\Contracts\InspectsObjects` (framework `^6.4`), o contrato
+opcional para conferir arquivos sem lê-los. Veja [Verificar arquivos](#verificar-arquivos-exists-e-size).
 
 Regras:
 
@@ -70,9 +75,33 @@ Regras:
 - O caminho do arquivo é o `$rootPath` (sem `/` nem `\` no fim), o separador do sistema operacional e a chave com
   `/` trocado pelo separador do sistema.
 
+### Verificar arquivos: `exists` e `size`
+
+Servem, por exemplo, para conferir um upload direto: ao concluir, a aplicação confere se o arquivo chegou e se o
+tamanho bate com o declarado.
+
+```php
+$storage = $application->container()->get(Storage::class);
+
+if ($storage instanceof InspectsObjects && $storage->size('reports/example.txt') === $declaredSize) {
+    // o arquivo chegou e o tamanho confere
+}
+```
+
+- `exists`: `true` se existe um **arquivo** na chave; `false` se não existe ou se o caminho é um diretório (mesma regra do
+  `get`).
+- `size`: o tamanho do arquivo em bytes (`filesize`), ou `null` se não existe (ou é um diretório). Arquivo vazio tem
+  tamanho `0`, não `null`.
+- Os dois só consultam o disco: não criam o diretório raiz nem leem o conteúdo. O resultado sempre reflete o disco no
+  momento da chamada (o cache de status de arquivo do PHP é limpo antes).
+- Falha ao obter o tamanho de um arquivo que existe lança `RuntimeException`
+  (`Nao foi possivel obter o tamanho do arquivo no storage local.`).
+- Valem as mesmas regras de chave: chave inválida lança `InvalidArgumentException`, e nenhuma chave sai do diretório
+  raiz.
+
 ### Chaves
 
-Toda chave passa pela mesma normalização, em `put`, `get`, `delete` e `temporaryUrl`: espaços, tabs, quebras de linha
+Toda chave passa pela mesma normalização, em `put`, `get`, `delete`, `temporaryUrl`, `exists` e `size`: espaços, tabs, quebras de linha
 e bytes nulos nas pontas são removidos (o `trim` padrão do PHP) e `\` vira `/`. O `Key` devolvido nos arrays é a chave **normalizada**. Chave inválida lança
 `InvalidArgumentException` (`A chave de storage e invalida.`), antes de qualquer acesso ao disco.
 
@@ -97,7 +126,7 @@ Por isso nenhuma chave escapa do diretório raiz.
 ## Dependencias de runtime
 
 - PHP `>=8.4`
-- `elavora/api-framework` `^2.0`
+- `elavora/api-framework` `^6.4` (primeira versão com o contrato `InspectsObjects`)
 
 ## Versão e compatibilidade
 

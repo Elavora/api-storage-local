@@ -20,7 +20,9 @@ $storage->put('reports/example.txt', 'conteudo');
 ```
 
 O pacote não depende de nenhum outro storage: ele só implementa
-`Elavora\Api\Framework\Contracts\Storage`.
+`Elavora\Api\Framework\Contracts\Storage` e o contrato opcional
+`Elavora\Api\Framework\Contracts\InspectsObjects`, com `exists($key): bool` e `size($key): ?int`, para conferir se um
+arquivo existe e qual o tamanho dele (por exemplo, ao concluir um upload direto).
 
 Especificação completa, exemplos e validação local: [docs/USO.md](docs/USO.md).
 
@@ -30,7 +32,7 @@ Especificação completa, exemplos e validação local: [docs/USO.md](docs/USO.m
 composer require elavora/api-storage-local
 ```
 
-Requisitos: PHP 8.4 ou superior e `elavora/api-framework` `^4.1 || ^5.0 || ^6.0`.
+Requisitos: PHP 8.4 ou superior e `elavora/api-framework` `^6.4`.
 
 Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
 8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o
